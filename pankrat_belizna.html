@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Правда или миф: тайны белизны</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: linear-gradient(145deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100vh;
+            display: flex;
+            padding: clamp(8px, 1.5vh, 20px);
+            margin: 0;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* margin:auto центрирует, но НЕ обрезает верх/низ при переполнении */
+        .game-container {
+            width: min(1500px, 96vw);
+            margin: auto;
+            background: #ffffff;
+            border-radius: clamp(28px, 3vw, 52px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+            padding: clamp(16px, 2vh, 36px) clamp(20px, 2.5vw, 44px);
+            border: 2px solid #64b5f6;
+        }
+
+        /* ===== ШАПКА ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: clamp(10px, 1.4vw, 20px);
+            margin-bottom: clamp(12px, 1.6vh, 22px);
+            background: #f5f9ff;
+            padding: clamp(8px, 1.1vh, 16px) clamp(18px, 2vw, 34px);
+            border-radius: 100px;
+            border: 2px solid #90caf9;
+            flex-wrap: wrap;
+        }
+        .header .avatar { font-size: clamp(2.2rem, 3.2vw, 3.4rem); line-height: 1; }
+        .header .title {
+            font-size: clamp(1.3rem, 1.9vw, 2.1rem);
+            font-weight: 800;
+            color: #0d47a1;
+            line-height: 1.15;
+        }
+        .header .sub {
+            font-size: clamp(0.9rem, 1.15vw, 1.25rem);
+            color: #1565c0;
+            font-weight: 500;
+        }
+
+        /* ===== ЭКРАНЫ ===== */
+        .screen { display: none; animation: fadeIn 0.35s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== СТАРТОВЫЙ ЭКРАН ===== */
+        .content-layout {
+            display: flex;
+            gap: clamp(20px, 2.5vw, 44px);
+            align-items: center;
+            background: #f5f9ff;
+            border-radius: clamp(20px, 2.5vw, 36px);
+            padding: clamp(18px, 2.2vh, 34px);
+            border: 2px solid #90caf9;
+            margin-bottom: clamp(10px, 1.4vh, 18px);
+        }
+        /* Крупно, но с оглядкой на высоту окна */
+        .content-layout img {
+            flex: 0 0 auto;
+            height: clamp(280px, min(32vw, 36vh), 440px);
+            width: auto;
+            aspect-ratio: 1 / 1;
+            border-radius: clamp(16px, 2vw, 28px);
+            object-fit: cover;
+            border: 3px solid #90caf9;
+        }
+        .content-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .content-text h2 {
+            font-size: clamp(1.6rem, 2.2vw, 2.5rem);
+            color: #0d47a1;
+            margin-bottom: clamp(6px, 0.8vh, 12px);
+            line-height: 1.2;
+        }
+        .content-text p {
+            font-size: clamp(1.05rem, 1.3vw, 1.4rem);
+            color: #1a237e;
+            line-height: 1.45;
+            margin-bottom: clamp(10px, 1.4vh, 18px);
+        }
+        .instructions {
+            background: #e8f0fe;
+            padding: clamp(12px, 1.5vh, 22px) clamp(16px, 1.8vw, 26px);
+            border-radius: clamp(14px, 1.8vw, 22px);
+            border-left: clamp(5px, 0.5vw, 8px) solid #1e88e5;
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            line-height: 1.45;
+            color: #1a237e;
+            margin-bottom: clamp(12px, 1.6vh, 22px);
+        }
+        .instructions strong { color: #0d47a1; }
+
+        .btn-primary {
+            background: #ffb74d;
+            border: none;
+            color: #4e342e;
+            font-weight: 800;
+            font-size: clamp(1.25rem, 1.55vw, 1.75rem);
+            padding: clamp(14px, 1.7vh, 26px) clamp(42px, 3.6vw, 72px);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #f57c00;
+            border: 2px solid #f9a825;
+            align-self: flex-start;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 0 #f57c00; background: #ffcc80; }
+        .btn-primary:active { transform: translateY(6px); box-shadow: 0 2px 0 #f57c00; }
+
+        /* ===== ВОПРОС ===== */
+        .question-card {
+            background: #f5f9ff;
+            border-radius: clamp(20px, 2.5vw, 36px);
+            padding: clamp(16px, 2vh, 30px);
+            border: 2px solid #90caf9;
+        }
+        .progress-bar {
+            background: #e3f2fd;
+            border-radius: 40px;
+            height: clamp(8px, 0.9vh, 14px);
+            margin-bottom: clamp(12px, 1.6vh, 24px);
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: #1e88e5;
+            border-radius: 40px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .question-layout {
+            display: flex;
+            gap: clamp(20px, 2.5vw, 40px);
+            align-items: flex-start;
+            margin-bottom: clamp(14px, 2vh, 28px);
+        }
+        .question-image {
+            flex: 0 0 auto;
+            height: clamp(280px, min(32vw, 36vh), 440px);
+            width: auto;
+            aspect-ratio: 1 / 1;
+            border-radius: clamp(16px, 2vw, 28px);
+            object-fit: cover;
+            border: 3px solid #90caf9;
+        }
+        .question-content { flex: 1; min-width: 0; }
+        .question-number {
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            color: #1565c0;
+            font-weight: 700;
+            margin-bottom: clamp(6px, 0.8vh, 12px);
+        }
+        .question-text {
+            font-size: clamp(1.4rem, 2vw, 2.2rem);
+            font-weight: 700;
+            color: #0d47a1;
+            line-height: 1.3;
+        }
+
+        .answers {
+            display: flex;
+            gap: clamp(14px, 1.8vw, 28px);
+            flex-wrap: wrap;
+        }
+        .answer-btn {
+            flex: 1 1 200px;
+            background: white;
+            border: 3px solid #90caf9;
+            border-radius: 100px;
+            padding: clamp(14px, 1.7vh, 24px) clamp(24px, 2.6vw, 44px);
+            font-size: clamp(1.3rem, 1.6vw, 1.9rem);
+            font-weight: 700;
+            color: #0d47a1;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 0 #64b5f6;
+            min-height: clamp(64px, 8vh, 92px);
+            text-align: center;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .answer-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #64b5f6; background: #e3f2fd; }
+        .answer-btn:active { transform: translateY(5px); box-shadow: 0 1px 0 #64b5f6; }
+        .answer-btn.correct { background: #a5d6a7; border-color: #43a047; color: #1b5e20; box-shadow: 0 6px 0 #2e7d32; }
+        .answer-btn.wrong { background: #ef9a9a; border-color: #e53935; color: #b71c1c; box-shadow: 0 6px 0 #c62828; }
+        .answer-btn.disabled { opacity: 0.6; pointer-events: none; filter: grayscale(0.2); }
+
+        /* Объяснение встаёт на место кнопок — карточка не растёт */
+        #explanationBlock { display: none; }
+        .explanation-box {
+            background: #e8f0fe;
+            padding: clamp(12px, 1.5vh, 22px) clamp(16px, 1.8vw, 26px);
+            border-radius: clamp(14px, 1.8vw, 22px);
+            border-left: clamp(5px, 0.5vw, 8px) solid #1e88e5;
+            text-align: left;
+            font-size: clamp(1.05rem, 1.25vw, 1.35rem);
+            line-height: 1.45;
+            color: #1a237e;
+        }
+        .explanation-box strong { color: #0d47a1; }
+        .next-btn {
+            margin-top: clamp(10px, 1.4vh, 18px);
+            background: #1e88e5;
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: clamp(1.2rem, 1.4vw, 1.65rem);
+            padding: clamp(14px, 1.7vh, 24px) clamp(28px, 2.6vw, 44px);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #0d47a1;
+            border: 2px solid #1565c0;
+            width: 100%;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .next-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #0d47a1; background: #42a5f5; }
+        .next-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 #0d47a1; }
+
+        /* ===== ФИНАЛ ===== */
+        .final-card {
+            background: #e8f0fe;
+            border-radius: clamp(20px, 2.5vw, 36px);
+            padding: clamp(22px, 3vh, 48px);
+            border: 3px solid #1e88e5;
+            text-align: center;
+        }
+        .final-card h2 {
+            font-size: clamp(1.7rem, 2.4vw, 2.7rem);
+            color: #0d47a1;
+            margin-bottom: clamp(8px, 1vh, 16px);
+            line-height: 1.15;
+        }
+        .final-card p {
+            font-size: clamp(1.1rem, 1.4vw, 1.5rem);
+            color: #1a237e;
+            line-height: 1.45;
+            margin-bottom: clamp(6px, 0.8vh, 12px);
+        }
+        .final-rank {
+            font-size: clamp(1.6rem, 2.1vw, 2.4rem);
+            font-weight: 800;
+            color: #1e88e5;
+            margin: clamp(12px, 1.6vh, 24px) 0 clamp(6px, 0.8vh, 12px);
+            line-height: 1.2;
+        }
+        .final-rank-desc {
+            font-size: clamp(1.05rem, 1.3vw, 1.4rem);
+            color: #1a237e;
+            margin-bottom: clamp(14px, 1.8vh, 26px);
+            line-height: 1.45;
+        }
+        .final-image {
+            height: clamp(200px, min(26vw, 30vh), 360px);
+            width: auto;
+            max-width: 100%;
+            border-radius: clamp(16px, 1.8vw, 26px);
+            margin: clamp(8px, 1.2vh, 18px) auto clamp(14px, 1.8vh, 26px);
+            display: block;
+            border: 3px solid #90caf9;
+        }
+        .restart-btn {
+            background: #ffb74d;
+            border: none;
+            color: #4e342e;
+            font-weight: 700;
+            font-size: clamp(1.2rem, 1.4vw, 1.65rem);
+            padding: clamp(14px, 1.7vh, 24px) clamp(32px, 3vw, 56px);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #f57c00;
+            border: 2px solid #f9a825;
+            margin: 0 auto;
+            display: inline-block;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .restart-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #f57c00; background: #ffcc80; }
+        .restart-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 #f57c00; }
+
+        .footer {
+            margin-top: clamp(10px, 1.4vh, 20px);
+            font-size: clamp(0.85rem, 1vw, 1.1rem);
+            color: #90caf9;
+            text-align: center;
+        }
+
+        /* ===== АДАПТИВ ДЛЯ УЗКИХ ЭКРАНОВ ===== */
+        @media (max-width: 900px) {
+            .content-layout {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .content-layout img {
+                height: clamp(220px, min(55vw, 30vh), 320px);
+            }
+            .content-text h2, .content-text p { text-align: center; }
+            .instructions { text-align: left; }
+            .btn-primary { align-self: center; width: 100%; text-align: center; }
+
+            .question-layout {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .question-image {
+                height: clamp(220px, min(55vw, 30vh), 320px);
+            }
+            .question-content { width: 100%; }
+            .question-text { text-align: center; }
+            .answers { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="app">
+    <!-- ШАПКА -->
+    <div class="header">
+        <span class="avatar">🐺</span>
+        <div>
+            <div class="title">Правда или миф: тайны белизны</div>
+            <div class="sub">Играем с волком-химиком Панкратом</div>
+        </div>
+    </div>
+
+    <!-- ===== СТАРТ ===== -->
+    <div class="screen active" id="screenIntro">
+        <div class="content-layout">
+            <img src="belizna_start.png" alt="Панкрат и химия белизны" />
+            <div class="content-text">
+                <h2>Привет! Я — Панкрат, тамбовский волк-химик.</h2>
+                <p>Знаешь ли ты, как отбеливали ткани в древности? А чем опасен хлор? Проверь себя! 10 вопросов — и я скажу, кто ты: <strong>Мастер белизны</strong> или <strong>Новичок в мире чистоты</strong>!</p>
+                <div class="instructions">
+                    <strong>Как играть:</strong><br>
+                    Прочитай утверждение и реши — правда это или миф.<br>
+                    После каждого ответа я расскажу правильный вариант и объясню, почему так.
+                </div>
+                <button class="btn-primary" id="startBtn">✨ Начать игру</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ВОПРОС ===== -->
+    <div class="screen" id="screenQuestion">
+        <div class="question-card">
+            <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%;"></div></div>
+            <div class="question-layout">
+                <img id="questionImage" class="question-image" src="" alt="Иллюстрация" />
+                <div class="question-content">
+                    <div class="question-number" id="questionNumber">Вопрос 1 из 10</div>
+                    <div class="question-text" id="questionText">Текст вопроса</div>
+                </div>
+            </div>
+
+            <!-- Кнопки ответов и объяснение — на одном месте -->
+            <div class="answers" id="answersRow">
+                <button class="answer-btn" id="trueBtn">✅ Правда</button>
+                <button class="answer-btn" id="falseBtn">❌ Миф</button>
+            </div>
+            <div id="explanationBlock">
+                <div class="explanation-box" id="explanationText"></div>
+                <button class="next-btn" id="nextBtn">➡️ Следующий вопрос</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ФИНАЛ ===== -->
+    <div class="screen" id="screenFinal">
+        <div class="final-card">
+            <h2>🏆 Игра завершена!</h2>
+            <p>Вы ответили правильно на <span id="correctCount">0</span> из 10 вопросов.</p>
+            <div class="final-rank" id="rankTitle">Ваше звание</div>
+            <div class="final-rank-desc" id="rankDesc">Описание звания</div>
+            <img src="belizna_final.png" alt="Панкрат подводит итог" class="final-image" />
+            <button class="restart-btn" id="restartBtn">🔄 Пройти заново</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <i class="fas fa-flask"></i> Информационно-выставочный центр АО «Пигмент»
+    </div>
+</div>
+
+<script>
+    // ===== ДАННЫЕ =====
+    const questions = [
+        {
+            text: 'До изобретения хлорного отбеливателя ткань отбеливали на солнце, раскладывая её на лугах.',
+            correct: true,
+            explanation: 'Этот метод назывался «луговое беление». Ткань расстилали на траве и оставляли на солнце на недели. Ультрафиолет разрушал красители, а роса и кислород воздуха усиливали эффект. Процесс был долгим, но эффективным.',
+            image: 'belizna_q1.png'
+        },
+        {
+            text: 'Хлорную известь открыли случайно, когда пытались получить взрывчатку.',
+            correct: true,
+            explanation: 'В 1789 году французский химик Клод Луи Бертолле пропускал хлор через раствор щёлочи, пытаясь получить взрывчатое вещество. Вместо этого он получил белый порошок с отбеливающими свойствами — хлорную известь. Она произвела революцию в текстильной промышленности.',
+            image: 'belizna_q2.png'
+        },
+        {
+            text: 'Первые оптические отбеливатели появились раньше, чем стиральные порошки.',
+            correct: false,
+            explanation: 'Оптические отбеливатели начали использовать в текстильной промышленности только в 1940-х годах. Стиральные порошки появились раньше — в начале XX века. Оптические отбеливатели стали добавлять в порошки в 1950-х, чтобы усилить эффект белизны.',
+            image: 'belizna_q3.png'
+        },
+        {
+            text: 'Древние римляне отбеливали ткань с помощью мочи.',
+            correct: true,
+            explanation: 'В Древнем Риме мочу собирали в специальные сосуды и использовали для отбеливания тканей. Аммиак, содержащийся в моче, разрушал красители и очищал волокна. Существовала даже профессия — «сборщик мочи».',
+            image: 'belizna_q4.png'
+        },
+        {
+            text: 'В XIX веке для удаления жирных пятен с одежды использовали бензин.',
+            correct: true,
+            explanation: 'Бензин и другие органические растворители (скипидар, керосин) применялись для удаления жирных пятен. Это было эффективно, но пожароопасно. В 1823 году появилась первая химчистка, где использовали скипидар, а позже — бензин. Метод был опасен, но популярен до середины XX века.',
+            image: 'belizna_q5.png'
+        },
+        {
+            text: 'Кислородный отбеливатель появился как альтернатива хлорному, потому что хлор разрушал ткань.',
+            correct: true,
+            explanation: 'К концу XIX века текстильщики заметили, что хлорный отбеливатель истончает и желтит ткани. В 1898 году был запатентован перборат натрия — первый кислородный отбеливатель. Он действовал мягче и не разрушал волокна.',
+            image: 'belizna_q6.png'
+        },
+        {
+            text: 'В Средневековье для удаления пятен использовали хлебный мякиш.',
+            correct: true,
+            explanation: 'Хлебный мякиш использовали как мягкий абразив и адсорбент. Им тёрли пятна от жира и грязи. Крошки впитывали загрязнения, а крахмал в хлебе работал как мягкий очиститель. Этот метод был распространён в Европе до XIX века.',
+            image: 'belizna_q7.png'
+        },
+        {
+            text: 'Оптический отбеливатель можно использовать для стирки цветных тканей.',
+            correct: false,
+            explanation: 'Оптический отбеливатель создаёт иллюзию белизны за счёт синего свечения. На цветных тканях он может исказить цвет — сделать его более холодным или грязноватым. Его добавляют только в порошки для белого белья.',
+            image: 'belizna_q8.png'
+        },
+        {
+            text: 'Смешивать хлорный отбеливатель с кислотой безопасно — это усиливает эффект.',
+            correct: false,
+            explanation: 'Смешивание гипохлорита натрия с кислотой приводит к бурному выделению газообразного хлора. Это смертельно опасно. Именно поэтому нельзя смешивать «Белизну» с уксусом, лимонной кислотой или средствами для удаления накипи. В истории известны случаи массовых отравлений.',
+            image: 'belizna_q9.png'
+        },
+        {
+            text: 'Первые пятновыводители на основе ферментов появились только в 1960-х годах.',
+            correct: true,
+            explanation: 'Ферменты (протеазы, липазы) начали добавлять в моющие средства в 1960-х годах. Это произошло после того, как учёные научились выделять ферменты в промышленных масштабах. До этого пятна удаляли только мылом, содой или растворителями.',
+            image: 'belizna_q10.png'
+        }
+    ];
+
+    // ===== СОСТОЯНИЕ =====
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+    let isAnswered = false;
+
+    // ===== DOM =====
+    const screenIntro = document.getElementById('screenIntro');
+    const screenQuestion = document.getElementById('screenQuestion');
+    const screenFinal = document.getElementById('screenFinal');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const questionNumber = document.getElementById('questionNumber');
+    const questionText = document.getElementById('questionText');
+    const questionImage = document.getElementById('questionImage');
+    const trueBtn = document.getElementById('trueBtn');
+    const falseBtn = document.getElementById('falseBtn');
+    const answersRow = document.getElementById('answersRow');
+    const explanationBlock = document.getElementById('explanationBlock');
+    const explanationText = document.getElementById('explanationText');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressFill = document.getElementById('progressFill');
+    const correctCountSpan = document.getElementById('correctCount');
+    const rankTitle = document.getElementById('rankTitle');
+    const rankDesc = document.getElementById('rankDesc');
+
+    // ===== ФУНКЦИИ =====
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        // Прокручиваем страницу наверх при смене экрана
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderQuestion(index) {
+        const q = questions[index];
+        if (!q) {
+            showFinal();
+            return;
+        }
+        isAnswered = false;
+        questionNumber.textContent = `Вопрос ${index + 1} из ${questions.length}`;
+        questionText.textContent = q.text;
+        questionImage.src = q.image;
+        progressFill.style.width = (index / questions.length) * 100 + '%';
+
+        trueBtn.classList.remove('correct', 'wrong', 'disabled');
+        falseBtn.classList.remove('correct', 'wrong', 'disabled');
+        trueBtn.disabled = false;
+        falseBtn.disabled = false;
+
+        // Кнопки ответов показываем, объяснение прячем
+        answersRow.style.display = 'flex';
+        explanationBlock.style.display = 'none';
+
+        nextBtn.textContent = (index + 1 < questions.length) ? '➡️ Следующий вопрос' : '🏁 Узнать результат';
+        showScreen('screenQuestion');
+    }
+
+    function handleAnswer(answer) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        const q = questions[currentQuestion];
+        const isCorrect = (answer === q.correct);
+        if (isCorrect) correctAnswers++;
+
+        trueBtn.classList.add('disabled');
+        falseBtn.classList.add('disabled');
+
+        if (q.correct === true) {
+            trueBtn.classList.add('correct');
+        } else {
+            falseBtn.classList.add('correct');
+        }
+        if (!isCorrect) {
+            if (answer === true) trueBtn.classList.add('wrong');
+            else falseBtn.classList.add('wrong');
+        }
+
+        const resultTitle = isCorrect ? '✅ Верно!' : '❌ Не угадали...';
+        explanationText.innerHTML = `<strong>${resultTitle}</strong><br>${q.explanation}`;
+
+        // Объяснение на месте кнопок — карточка не растёт по высоте
+        answersRow.style.display = 'none';
+        explanationBlock.style.display = 'block';
+
+        progressFill.style.width = ((currentQuestion + 1) / questions.length) * 100 + '%';
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            renderQuestion(currentQuestion);
+        } else {
+            showFinal();
+        }
+    }
+
+    function showFinal() {
+        showScreen('screenFinal');
+        correctCountSpan.textContent = correctAnswers;
+
+        let rank = '';
+        let desc = '';
+        if (correctAnswers >= 9) {
+            rank = '🥇 Мастер белизны';
+            desc = 'Вы знаете об отбеливателях всё — от древних методов до современных технологий.';
+        } else if (correctAnswers >= 7) {
+            rank = '🧪 Опытный химик-технолог';
+            desc = 'Вы уверенно разбираетесь в теории и практике создания отбеливающих веществ.';
+        } else if (correctAnswers >= 5) {
+            rank = '🧼 Практик-пятновыводитель';
+            desc = 'Вы знакомы с основами отбеливания, но есть куда расти.';
+        } else {
+            rank = '🌱 Новичок в мире чистоты';
+            desc = 'Самое время узнать, как работает химия белизны!';
+        }
+        rankTitle.textContent = rank;
+        rankDesc.textContent = desc;
+    }
+
+    function resetGame() {
+        currentQuestion = 0;
+        correctAnswers = 0;
+        isAnswered = false;
+        progressFill.style.width = '0%';
+        answersRow.style.display = 'flex';
+        explanationBlock.style.display = 'none';
+        showScreen('screenIntro');
+    }
+
+    // ===== СОБЫТИЯ =====
+    startBtn.addEventListener('click', () => renderQuestion(0));
+    restartBtn.addEventListener('click', resetGame);
+    nextBtn.addEventListener('click', nextQuestion);
+    trueBtn.addEventListener('click', () => handleAnswer(true));
+    falseBtn.addEventListener('click', () => handleAnswer(false));
+
+    resetGame();
+</script>
+</body>
+</html>
